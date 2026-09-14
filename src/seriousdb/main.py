@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
+import logging
 from typing import Annotated
 
 from fastapi import BackgroundTasks, Depends, FastAPI
+from seriousdb.logging_config import configure_logging
 
 from .cache import Cache
 from .config import DB_FILE
@@ -11,6 +13,7 @@ cache = Cache()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    configure_logging()
     cache.load(DB_FILE)
     yield
 
