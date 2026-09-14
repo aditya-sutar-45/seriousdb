@@ -20,6 +20,7 @@ class Cache:
     def insert(self, key: str, value: str):
         with self.lock:
             if self.db is None:
+                logger.error("Database unavailable: %s", self.filename)
                 raise HTTPException(
                     status_code=500,
                     detail=f"Database file {self.filename} could not be opened and loaded",
@@ -31,12 +32,14 @@ class Cache:
     def select(self, key: str):
         with self.lock:
             if self.db is None:
+                logger.error("Database unavailable: %s", self.filename)
                 raise HTTPException(
                     status_code=500,
                     detail=f"Database file {self.filename} could not be opened and loaded",
                 )
             val = self.db.get(key, None)
         if val is None:
+            logger.debug("Key not found: %s", key)
             raise HTTPException(status_code=404, detail=f"No value set for key {key}")
         return val
 
@@ -44,23 +47,27 @@ class Cache:
     def delete(self, key: str):
         with self.lock:
             if self.db is None:
+                logger.error("Database unavailable: %s", self.filename)
                 raise HTTPException(
                     status_code=500,
                     detail=f"Database file {self.filename} could not be opened and loaded",
                 )
             val = self.db.pop(key, None)
         if val is None:
+            logger.debug("Key not found: %s", key)
             raise HTTPException(status_code=404, detail=f"No value set for key {key}")
         return val
 
     def load(self, filename: str):
         with self.lock:
             if not os.path.isfile(filename):
+                logger.info("Database file %s does not exist; creating a new database", filename)
                 self.db = _write_default(filename)
             else:
                 try:
                     with open(filename, "rb") as f:
                         self.db = json.loads(f.read().decode())
+                        logger.info("Loaded database from %s", filename)
                 except (json.JSONDecodeError, UnicodeDecodeError) as e:
                     backup = f"{filename}.corrupt-{int(time.time())}"
                     os.replace(filename, backup)
@@ -77,6 +84,7 @@ class Cache:
     def flush(self):
         with self.lock:
             if self.db is None:
+                logger.error("Database unavailable: %s", self.filename)
                 return
             with open(self.filename, "wb+") as f:
                 f.write(json.dumps(self.db).encode())
