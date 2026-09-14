@@ -16,7 +16,6 @@ class Cache:
         self.db = None
         self.lock = Lock()
 
-
     def insert(self, key: str, value: str):
         with self.lock:
             if self.db is None:
@@ -27,7 +26,6 @@ class Cache:
                 )
             self.db[key] = value
         return value
-
 
     def select(self, key: str):
         with self.lock:
@@ -42,7 +40,6 @@ class Cache:
             logger.debug("Key not found: %s", key)
             raise HTTPException(status_code=404, detail=f"No value set for key {key}")
         return val
-
 
     def delete(self, key: str):
         with self.lock:
@@ -61,7 +58,9 @@ class Cache:
     def load(self, filename: str):
         with self.lock:
             if not os.path.isfile(filename):
-                logger.info("Database file %s does not exist; creating a new database", filename)
+                logger.info(
+                    "Database file %s does not exist; creating a new database", filename
+                )
                 self.db = _write_default(filename)
             else:
                 try:
@@ -80,7 +79,6 @@ class Cache:
                     self.db = _write_default(filename)
             self.filename = filename
 
-
     def flush(self):
         with self.lock:
             if self.db is None:
@@ -94,5 +92,3 @@ def _write_default(filename: str) -> dict:
     with open(filename, "wb") as f:
         f.write(json.dumps(DEFAULT_DB).encode())
     return dict(DEFAULT_DB)
-
-

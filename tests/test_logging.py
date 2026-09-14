@@ -44,9 +44,7 @@ class LoggingConfigTests(unittest.TestCase):
             configure_logging()
 
         self.assertEqual(logging.getLogger().level, logging.INFO)
-        self.assertTrue(
-            any("not a valid log level" in log for log in cm.output)
-        )
+        self.assertTrue(any("not a valid log level" in log for log in cm.output))
 
 
 class CacheLoggingTests(unittest.TestCase):
@@ -129,14 +127,10 @@ class ExceptionHandlerLoggingTests(unittest.TestCase):
         self.assertEqual(response.json(), {"message": "Internal Server Error."})
 
         # --- the log contains the error message ---
-        self.assertTrue(
-            any("Unexpected application error" in log for log in cm.output)
-        )
+        self.assertTrue(any("Unexpected application error" in log for log in cm.output))
 
         # --- the log contains a full stack trace ---
-        self.assertTrue(
-            any("Traceback" in log for log in cm.output)
-        )
+        self.assertTrue(any("Traceback" in log for log in cm.output))
 
         # --- internal details are NOT leaked to the client ---
         self.assertNotIn("Unexpected DB failure", response.text)
