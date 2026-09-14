@@ -3,12 +3,15 @@ import logging
 from typing import Annotated
 
 from fastapi import BackgroundTasks, Depends, FastAPI
+from fastapi.responses import JSONResponse
 from seriousdb.logging_config import configure_logging
 
 from .cache import Cache
 from .config import DB_FILE
 
 cache = Cache()
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -45,3 +48,9 @@ def get(key: str, cache: Annotated[Cache, Depends(get_cache)]):
 @app.delete("/db")
 def delete(key: str, cache: Annotated[Cache, Depends(get_cache)]):
     return cache.delete(key)
+
+
+@app.exception_handler(Exception)
+async def global_handle_exception(request, exc):
+    logger.exception("Unexpected application error: %s", exc)
+    return JSONResponse(status_code=500, content={"message": "Internal Server Error."})
