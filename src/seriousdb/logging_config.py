@@ -9,13 +9,7 @@ def configure_logging() -> None:
     log_level_string = os.getenv("LOG_LEVEL", "INFO").upper()
 
     levels = logging.getLevelNamesMapping()
-    invalid_level = False
-
-    if log_level_string in levels:
-        log_level = levels[log_level_string]
-    else:
-        invalid_level = True
-        log_level = logging.INFO
+    log_level = levels.get(log_level_string, logging.INFO)
 
     logging.basicConfig(
         level=log_level,
@@ -23,7 +17,7 @@ def configure_logging() -> None:
         stream=sys.stdout,
     )
 
-    if invalid_level:
+    if log_level_string not in levels:
         logger.warning(
             "'%s' is not a valid log level. Falling back to 'INFO'.",
             log_level_string,
